@@ -1,0 +1,3 @@
+"0","data = read.table(""D:/SEMESTRE_1_2021/ESTADISTICA_2/INFORME_2/datos2.txt"", header = TRUE, sep = "" "", dec = ""."")"
+"0","pairs(data,lower.panel =myPanel.cor,upper.panel = panel.smooth,diag.panel=myPanel.box,"
+"0","      labels=names(data))"

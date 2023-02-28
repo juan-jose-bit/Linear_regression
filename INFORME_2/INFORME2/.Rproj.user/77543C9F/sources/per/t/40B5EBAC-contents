@@ -1,0 +1,51 @@
+#### Practica simulación de MCL
+
+gen_dat <- function(n) {
+  x1  = runif(n=n, min=0, max=10)
+  x2 = x1 * 2 + rnorm(n=n, sd=0.1) # x2 es el doble de x1 + ruido
+  y = rnorm(n=n, mean= - 3 + 2 * x1 - 4 * x2, sd=2)
+  data.frame(y, x1, x2)
+}
+data = gen_dat(20)
+mod = lm(y~.,data=data)
+summary(mod)
+
+x0 = rep(1,20)
+x1 = c(data[2])
+x2 = c(data[3])
+X = as.matrix(data.frame(x0,x1,x2))
+X_D = t(X)%*%X
+solve(X_D)
+
+#### Identificacion de MCL.
+library(dplyr)
+mtcars %>% glimpse()
+
+##matiz de correlacion
+mtcars %>% cor(method="pearson") %>% round(digits=2) -> mat_cor
+mat_cor
+
+###grafica matrz correlacion
+library(corrplot)
+corrplot(mat_cor, type="upper", order="hclust", tl.col="black", tl.srt=45)
+
+#### Simulacion de nuevos datos.
+gen_dat1 <- function(n) {
+  x1 <- sample(5:25, size=n, replace=TRUE)
+  x2 <- rpois(n, lambda=5)
+  x3 <- rbinom(n, size=10, prob=0.4)
+  x4 <- rbeta(n=n, shape1=0.5, shape2=0.7)
+  ruido1 <- runif(n=n, min=-0.5, max=0.5)
+  ruido2 <- runif(n=n, min=-0.5, max=0.5)
+  x5 <- x1 - 3 * x2 + ruido1
+  x6 <- x2 - 4 * x3 + ruido2
+  y <- rnorm(n=n, mean= - 3 + 2 * x1 - 4 * x2, sd=2)
+  data.frame(y, x1, x2, x3, x4, x5, x6)
+}
+
+#### Metodo de medida VIF(Variance infaltion factor)
+datos = gen_dat1(n=30)
+mod <- lm(y ~ ., data=datos)
+car::vif(mod)
+
+qf(df1 = 3,df2 = 38,)

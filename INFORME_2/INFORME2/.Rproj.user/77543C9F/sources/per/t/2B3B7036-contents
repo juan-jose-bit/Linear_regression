@@ -1,0 +1,23 @@
+library(leaps)
+library(car)
+laboral = read.table("D:/SEMESTRE_1_2021/ESTADISTICA_2/Multicolinealidad/taller_laboralcsv/datos/laboral.csv",
+                     h=T,sep=";")
+### matríz de gráficas de dispersion, boxplot y correlaciones.
+source("D:/SEMESTRE_1_2021/ESTADISTICA_2/Functions.R")
+
+pairs(laboral,lower.panel =myPanel.cor,upper.panel = panel.smooth,diag.panel=myPanel.box,
+      labels=names(laboral))
+##matriz de correlaciones
+cor(laboral)
+### Calculo de coeficientes de regresion estandarizados y VIF.
+mod = lm(Y~.,data=laboral)
+myCoefficients(mod,laboral)
+### tabla de todas las regresiones posibles
+myAllRegTable(mod,MSE = FALSE)
+### criterios de seleccion con graficos
+##criterio del r2
+myR2_criterion(mod)
+##criterio 2 ajustado
+myAdj_R2_criterion(mod)
+##criterio Cp
+myCp_criterion(mod)

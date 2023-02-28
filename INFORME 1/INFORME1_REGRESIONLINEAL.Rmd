@@ -1,0 +1,284 @@
+---
+title: "REGRESIÓN LINEAL SIMPLE"
+author: "Juan Jose Rivera Londoño, Grupo 1"
+date: "9/4/2021"
+output: html_document
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+
+```{r message=FALSE}
+library(readxl)
+library(plotly)
+library(ggplot2)
+library(plyr)
+```
+
+
+# Carga de los datos de vivienda
+```{r}
+datos_vivienda = read_excel("C:/Users/Juan Jose/Downloads/datos_vivienda.xlsx")
+datos_vivienda
+precio = datos_vivienda$precio_millon
+area_c = datos_vivienda$Area_contruida
+```
+### 1. Realice un análisis exploratorio de las variables precio de vivienda (millones de pesos COP) y area de la vivienda (metros cuadrados) - incluir graficos e indicadores apropiados interpretados.
+
+### Análisis exploratorio de los datos
+Del análisis exploratorio tenemos que para la muestra obtenida, la media para la variable área de la vivienda es de **_115.7_** metros cuadrados y la media para la variable precio en millones de pesos es de **_332.1_**, tenemos que para ambas variables (Área de la vivienda y precio en millones de pesos) los datos promedio se alejan considerablemente de la mediana **_(97.0 , 305.0)_** respectivamente, lo que nos dice que hay algunos datos atipicos extremos hacia el lado derecho o positivo de ambas variables.
+
+Como medida de dispersión de los datos se calculo la desviación estándar, la cual para las variables área de la vivienda en metros cuadrados y precio en millones de pesos es de **__35.54 y 82.14__** respectivamente, estos valores representan la desviación promedio aproximada que los datos tienen al rededor de la media.
+```{r,}
+summary(datos_vivienda)
+##desviacion estandar de la variable Area construida
+sd(datos_vivienda$Area_contruida)
+##desviacion estandar de la variable precio millón
+sd(datos_vivienda$precio_millon)
+```
+
+### Boxplots para las variables Área y Precio
+
+Otra manera de hacer un ánalisis exploratorio de las variables es con un gráfico boxplot el cual nos da una idea de la forma que tiene la distribución de los datos, en general podemos decir que los datos tanto para área de vivienda como para el precio están agrupados en valores más "pequeños", por ejemplo hay más datos de casas con "pocos" metros cuadrados y un precio "menor" que datos de casas con "muchos" metros cuadrados y un precio "elevado", esto lo podemos ver fijándonos en que las cajas para ambas variables están desplazadas más hacia abajo o hacia valores menores. Para observar visualmente la variabilidad y dispersión de los datos podemos fijarnos en la caja central de los boxplots o rango intercuartil, la cual nos dice que tanta dispersión hay en el 50% central de los datos, como podemos ver la variable precio en millones tiene más dispersión en la parte central de los datos tomados que la variable área de la vivienda en metros cuadrados.
+
+Otra apreciación que se puede hacer es la identificación de datos atípicos hacia el lado positivo de ambas variables, esto lo podemos observar dándonos cuenta de que los bigotes superiores de los boxplots para ambas variables están mucho más separados de la caja central y son mucho más largos que los bigotes inferiores, especialmente para la variable área de la vivienda. Podemos decir entonces que los datos se distribuyen con una asimetría positiva para ambas variables.
+
+Debido a esta asimetría positiva las medias de ambas variables están desplazadas hacia arriba en el grafico o son mayores que las medianas, esto lo hicimos notar antes calculando el valor de las medias y medianas y ahora lo podemos ver de manera visual con los boxplots.
+
+```{r}
+par(mfrow=c(1,2),mai = c(1, 0.8, 0.3, 0.05))
+boxplot(x=datos_vivienda$precio_millon,main = "Precio",ylab = "Millones de pesos")
+points(mean(datos_vivienda$precio_millon))
+boxplot(x=datos_vivienda$Area_contruida, main = "Área vivienda",ylab ="Metros Cuadrados" )
+points(mean(datos_vivienda$Area_contruida))
+```
+
+### 2. Realice un análisis exploratorio bivariado de datos enfocado en la relación entre la variable respuesta _y=precio_ en función de la variable predictora _x=area_ - incluir graficos e indicadores apropiados interpretados.
+
+### Análisis exploratorio bivariado.
+
+Al realizar un gráfico de dispersión con las variables área de la vivienda como variable X o predictora y precio como la variable Y o respuesta, Podemos observar una relación creciente entre el área de la vivienda y el precio en millones, esta relación parece ser de tipo lineal creciente, ya que a mayor área de la vivienda, mayor es el precio que esta posee y este crecimiento del precio en función del área parece ser del tipo lineal. Podemos sustentar con mayor fuerza esta afirmación al observar que el coeficiente de correlación de pearson es de **_0.919_**, este coeficiente nos indica que grado y que tipo de relación lineal tienen las variables, como el coeficiente es positivo la relación es creciente y al ser igual en magnitud a **_0.919_** considero que la relación lineal es fuerte para este tipo de situación o problema.
+
+```{r}
+yminp = round_any(x = min(datos_vivienda$precio_millon),10,floor)
+ymaxp = round_any(x = max(datos_vivienda$precio_millon),10,ceiling)+50 
+plt1 = ggplot(data=datos_vivienda,aes(Area_contruida,precio_millon)) +
+  geom_point()+theme_bw()+
+  labs(x="Área construida",y = "Precio Millónes COP")+
+  scale_y_continuous(breaks=seq(yminp, ymaxp, 50))
+  
+ggplotly(plt1)
+##correlacion de pearson.
+cor(area_c,precio,method="pearson")
+```
+### 3. Estime el modelo de regresión lineal simple entre $precio = f(area) +e$. Interprete los coeficientes del modelo $\beta_0$, $\beta_1$ en caso de ser correcto.
+
+### Estimación del modelo lineal
+El modelo de regresión lineal estimado es: $$\hat{y}=\hat{\beta_0}+\hat{\beta_1}x$$ 
+Donde los coeficientes esitimados para el modelo son:
+$$\hat{\beta_0} = 86.234\\
+\hat{\beta_1} = 2.124$$
+No seria correcto interpretar el coeficiente $\hat{\beta_0}$ ya que no hay datos de la variable predictora "metros cuadrados" que sean iguales o muy cercanos a cero metros cuadrados.
+
+Por otro lado tenemos que si es correcto interpretar el coeficiente $\hat{\beta_1}$, este representa que por cada metro cuadrado adicional construido se espera que en promedio el precio de la vivienda en cuestión aumente en 2.124 millones de pesos.
+```{r}
+lm1 = lm(precio ~ area_c)
+summary(lm1)
+
+```
+
+### 4. Construir un intervalo de confianza (95%) para el coeficiente $\beta_1$, interpretar y concluir si el coeficiente es igual a cero o no. Compare este resultado con una prueba de hipotesis $t$.
+
+### Intervalo de confianza para $\hat{\beta_1}$
+Según los cálculos, los limites inferior y superior para el coeficiente $\hat{\beta_1}$ son **_1.740_** y **2.507** respectivamente, ya que el valor **_0_** no está dentro del rango podemos concluir con un nivel de confianza del 95% que el coeficiente $\hat{\beta_1}$ no es igual a cero y es significativo.
+```{r}
+n = length(area_c)
+sxx = sum(area_c^2-mean(area_c)^2)
+coeffs = coefficients(lm1)
+b0 = unname(coeffs[1])
+b1 = unname(coeffs[2])
+yi_mod = b0+b1*area_c
+varmod = sum((precio-yi_mod)^2)/(n-2)
+err_stdb1 = sqrt(varmod/sxx)
+ft = qt(p=0.975,df=n-2,lower.tail = T)
+LI_b1 = b1 - (ft*err_stdb1)
+LS_b1 = b1 + (ft*err_stdb1)
+## intervalo de confianza para b1
+c(LI_b1,LS_b1)
+```
+
+### Comparacion con la prueba de hipotesis $t$.
+
+Caculamos el estadístico de prueba para probar la significancia de la pendiente:
+$$T = \frac{\hat{\beta_1}-0}{\sqrt{\frac{\hat\sigma^2}{Sxx}}}=11.42$$
+
+
+Y lo comparamos con el valor limite de la distribucion t-student con un nivel de significacia del 5% y n-2 grados de libertad siendo n el numero de observaciones en la muestra (26 obsv):
+$$t_{\alpha/2,n-2}=2.06$$
+Como el valor absoluto del estadístico de prueba es mayor que el valor crítico de la distribución t-student, entoces rechazamos la hipótesis nula y concluimos que el valor de $\beta_1$ es distinto de cero y por lo tanto significativo.
+```{r}
+est_T = b1/(sqrt(varmod/sxx))
+ft = qt(p=0.025,df=n-2,lower.tail = F)
+est_T
+ft
+abs(est_T) > ft
+```
+
+### 5. Calcule e interprete el indicador de bondad y ajuste $R^2$.
+
+### Indicador de bondad y ajuste $R^2$
+El indicador de bondad y ajuste es: 
+$$R^2 = 0.844$$ 
+Esto nos indica que la variable área de la vivienda explica bastante bien la respuesta precio en millones, mas especificamente, un 84% de la variabilidad total en la variable Y(precio millones) es explicada mediante la relación lineal con la variable predictora metros cuadrados de la vivienda.
+
+```{r}
+summary(lm1)
+ssr = b1^2*sxx
+sst = sum(precio^2-mean(precio)^2)
+ssr/sst
+```
+
+### 6. ¿Cual seria el precio promedio estimado para un apartamento de 110 metros cuadrados? Considera entonces con este resultado que un apartemento en la misma zona con 110 metros cuadrados en un precio de 200 millones seria una buena oferta? Que consideraciones adicionales se deben tener?.
+
+### Predicciones sobre el valor medio.
+El valor promedio esperado para una casa con 110 metros cuadrados es de 319.87 millones de pesos, si se nos presnta una oferta por una casa con los mismos metros cuadrados (110) a un precio de 200 millones de pesos, podemos decir si este valor es una buena oferta o no, si analizamos un intervalo de confianza para el valor medio de la variable precio en millones dado un área de vivienda de 110 metros cuadrados con cierto valor de significancia, el valor de significancia escogido para realizar la comparación es del 5%.
+
+Segun los calculos realizados, con un nivel de confianza del 95%, el verdadero valor promedio de la variable precio en millones esta dentro del rango  (306.31 , 333.42) como el precio de 200 millones esta fuera de este rango podemos decir que este precio para un casa de 110 metros cuadrados construidos es una buena oferta.
+
+Una consideración extra es que no se deben hacer extrapolaciones, por lo tanto el valor de x que fue utilizado para hacer la predicción (110) debe estar dentro del rango experimental o de la muestra, los valores mínimo y máximo de la variable X son 80 y 195 metros cuadrados respectivamente, por lo tanto es correcto hacer una predicción del precio promedio esperado de una vivienda que tenga 110 metros cuadrados.
+
+```{r}
+x_0 = 110
+ybar0 = b0+(b1*x_0)
+errstd_media = sqrt(varmod*((1/n)+((x_0-mean(area_c))^2/sxx)))
+t_ybar = qt(p=0.975,df=n-2,lower.tail = T)
+LI_ybar0 = ybar0 -(t_ybar*errstd_media)
+LS_ybar0 = ybar0 +(t_ybar*errstd_media)
+## valor medio de y dado x0
+ybar0
+## intervalo de confianza para y
+c(LI_ybar0,LS_ybar0)
+## prediccion e intervalos con la funcion predict
+predict(lm1,newdata = data.frame(area_c=c(110)),level=0.95,interval = "confidence")
+## maximo valor de x
+max(area_c)
+##minimo valor de x
+min(area_c)
+```
+
+### 7. Realice la validación de supuestos del modelo por medio de graficos apropiados, interpretarlos y sugerir posibles soluciones si se violan algunos de ellos.
+
+### Validación de supuestos de modelo.
+Para validar los supuestos del error aleatorio se usan los residuales del modelo los cuales son "pseudo" estimaciones de este error aleatorio.
+
+Para hacer la validacion de supuestos temos que chequear que:
+ 
+* Los errores del modelo tienen media cero
+
+* Los errores del modelo tienen varianza constante
+
+* Los errores del modelo se distribuyen normal
+
+* Los errores del modelo son independientes
+
+### Media cero
+Mediante procedimientos matemáticos se puede probar la siguiente expresión independientemente del método usado para encontrar los coeficientes de regresion; el de minimos cuadrados o el de maxima verosimilitud:$$\sum_{i=1}^n e_i=0$$
+Por lo tanto la media de los errores del modelo siempre es cero por definición.
+
+### Varianza Constante
+Para probar la homogeneidad de la varianza utilizaremos primeramente la prueba gráfica (residuales vs valores ajustados), como podemos ver en la gráfica, esta forma en particular con curvatura concava o convexa (segun como se vea) no nos dice nada acerca de la homogeneidad de la varianza, asi que no podemos concluir nada acerca de este supuesto, aunque si podemos decir que hay una falta de linealidad en el modelo.
+
+Para encontrar un modelo que se ajuste mejor podemos realizar transformaciones en las variables del modelo buscando una relación que si sea mucho mas lineal, para solucionar el problema de varianza no homogenea podemos usar el metodo de minimos cuadrados ponderados o usar transformaciones en Y que estabilicen la varianza.
+
+```{r}
+plot(lm1,which=1)
+```
+
+### Distribución normal en los errores. 
+La normalidad del modelo tambien la probaremos con una prueba gráfica y ademas le sumaremos la prueba de Shapiro-Wilk como una confirmación o coeficiente adicional, pero como resultado final tomaremos la interpretación de la prueba gráfica. Como podemos ver en la gráfica, hay varios puntos  que se alejan bastante a mi parecer de la recta de normalidad, en particular los que están en el rango (-1,0) del el eje x, fluctuan y se alejan bastante de la recta, ademas el punto ubicado más hacia la izquierda en el grafico tambien se aleja bastante.
+
+El coeficiente de Shapiro-Wilk es muy grande **_0.309_** lo cual nos dice que no podemos rechazar la hipótesis nula de que los errores efectivamente siguen una distribución normal, pero como hicimos notar anteriormente solo tomaremos en cuenta la prueba gráfica, por lo que finalmente podemos concluir que los errores no siguen una distribución normal.
+
+Muchas veces la no normalidad va acompañada de una varianza no homogenea por lo que una forma de aproximar el modelo a la normalidad tambien seria realizar una transformación de las variables del modelo para asi estabilizar la varianza, otra solucion puede ser el trabajar con metodos no parametricos de regresión.
+
+```{r}
+plot(lm1,which = 2)
+shapiro.test(residuals(lm1))
+```
+
+### Independencia en los errores.
+Por ultimo, para probar el supuesto de independencia de los errores debemos conocer el orden de las observaciones en el tiempo, como no tenemos esa información disponible no podemos hacer la validación de este supuesto.
+
+### 8. De ser necesario realice una transformación apropiada para mejorar el ajuste y supuestos del modelo.
+
+### Transformación del modelo.
+Se hará una transformación del modelo para mejorar los supuestos acerca de los errores, como no se pudo concluir nada acerca de la homogeneidad de la varianza, se buscara una transformación en la que podamos observar que la varianza de los errores del modelo es constante, que se observe un modelo lineal y ademas tambien buscaremos que los errores sigan una distribución normal, estos supuestos tambien se validaran con pruebas graficas. 
+Se hara una transformacion de la forma:$$Y={\beta_0}+{\beta_1}X^*+\epsilon$$
+donde $X^*=1/X$,finalmente la ecuacion queda de la forma:$$Y={\beta_0}+{\beta_1}\frac{1}{X}+\epsilon$$.
+
+```{r,}
+x_pr = 1/area_c
+lm2 = lm(precio ~ x_pr)
+```
+
+### 9. De ser necesario compare el ajuste y supuestos del modelo inicial y el transformado.
+
+### Varianza constante
+Primero compararemos el supuesto de homogeneidad de varianza entre el modelo inicial y en el transformado con el gráfico de residuales vs valores ajustados, la gráfica de la izquierda es la correspondiente al modelo transformado, podemos obsevar que ahora si podemos concluir acerca de la homogeneidad, el patron observado corresponde al de un modelo lineal con varianza homogenea, por lo que podemos concluir que el modelo transformado tiene tambien estas características, el gráfico de la derecha corresponde al modelo inicial y como concluimos anteriormente, este patrón es tipico de un modelo no lineal.
+```{r}
+par(mfrow=c(1,2),mai = c(2, 0.8, 0.3, 0.05))
+plot(lm2,which = 1)
+plot(lm1,which = 1)
+cor(area_c,precio,method="pearson")
+cor(x_pr,precio,method="pearson")
+```
+### Normalidad en los errores
+Como en el caso anterior la gráfica de la izquierda corresponde al modelo transformado y el de la derecha al modelo inicial, en la gráfica de la izquierda podemos notar que los puntos que inicialmente se desviavan mas de la recta de normalidad en el modelo inicial (en el rango(-1,0) del eje x) ahora se ajustan mucho mas a esta curva, como un punto en contra tenemos el punto superior derecho que ahora se aleja mas de la curva, al analizar estos resultados concluyo que los errores ahora se distribuyen de manera normal ya que muchos de los puntos, al hacer la transformación, se ajustan mejor a la recta de normalidad. Los coeficientes de Shapiro-Wilk ahora nos dan informacion extra, para el caso del modelo transformado el coeficiente es igual a **_0.587_** mientras que el del modelo inicial es de **_0.309_**, los dos nos dicen que no podemos rechazar que los errores se distribuyan normal, pero en el caso del modelo transformado este valor tan alto nos da mas confianza de que los datos sigan una distribucion normal.
+
+```{r}
+par(mfrow=c(1,2),mai = c(2, 0.8, 0.3, 0.05))
+plot(lm2,which = 2)
+plot(lm1,which = 2)
+shapiro.test(residuals(lm1))
+shapiro.test(residuals(lm2))
+```
+
+Finalmente, podemos concluir lo mismo acerca de los 2 supuestos restantes de media cero e independencia de los errores ya que esta transformación no los afecta, concluimos entonces que en el modelo transformado los errores tienen media cero y no sabemos nada acerca de la independencia de estos.
+
+### 10. Realizar una función en R la cual permita ingresar el valor de $X$, $Y$,$(1− α)%$ en una regresión lineal simple y retorne el intervalo de confianza para $\beta_1$ dado un nivel de confianza de entrada $(1 − α)%$.
+
+A continuación se realizará una función que nos entregue el valor de $\hat{\beta_1}$ y su intervalo de confianza para un vector predictor $X$, un vector respuesta $Y$ y un valor de confianza $(1-\alpha)%$, se probara la función con los datos de área construida y precio de la vivienda.
+
+```{r}
+intervalo_b1 = function(x,y,conf){
+  n.f = length(x)
+  mod = lm(y ~ x)
+  yi.g = unname(predict(mod))
+  coef = coefficients(mod)
+  b1f = coef[[2]]
+  alpha = 1-(conf/100)
+  t.f = qt(p=alpha/2,df=n.f-2,lower.tail = FALSE)
+  varf = sum((y-yi.g)^2)/(n.f-2)
+  sxxf = sum(x^2-mean(x)^2)
+  lif = b1f - (t.f * sqrt(varf/sxxf))
+  lsf = b1f + (t.f * sqrt(varf/sxxf))
+  res = c(b1f,lif,lsf)
+  names(res) = c("beta1","LI","LS")
+  return (res)
+}
+
+intervalo_b1(area_c,precio,95)
+```
+
+
+
+
+
+
+
+
+
+
